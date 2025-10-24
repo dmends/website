@@ -1,0 +1,27 @@
+{
+  "teste-simples.md": {
+    "type": "file",
+    "path": "documentos/exemplos/teste-simples.md",
+    "name": "teste-simples.md"
+  },
+  "teste-mermaid.md": {
+    "type": "file",
+    "path": "documentos/exemplos/teste-mermaid.md",
+    "name": "teste-mermaid.md"
+  },
+  "teste-plantuml.md": {
+    "type": "file",
+    "path": "documentos/exemplos/teste-plantuml.md",
+    "name": "teste-plantuml.md"
+  },
+  "teste-codigo.md": {
+    "type": "file",
+    "path": "documentos/exemplos/teste-codigo.md",
+    "name": "teste-codigo.md"
+  },
+  "teste-swagger.md": {
+    "type": "file",
+    "path": "documentos/exemplos/teste-swagger.md",
+    "name": "teste-swagger.md"
+  }
+}

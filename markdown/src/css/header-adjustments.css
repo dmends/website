@@ -1,0 +1,19 @@
+/* Ajustes para alinhar título e logo à esquerda */
+
+/* Container para agrupar menu e título à esquerda */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Sobrescrevendo o estilo do título para remover margem padrão */
+.app-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: var(--primary-color) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin: 0 !important;
+}

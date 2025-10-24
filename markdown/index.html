@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Visualizador de arquivos Markdown com navegação lateral">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Markdown Viewer</title>
+    <!-- Biblioteca Marked.js para conversão de Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Biblioteca Mermaid.js para diagramas -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+
+    <!-- Biblioteca pako.js para compressão PlantUML -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    
+    <!-- Biblioteca Swagger UI para documentação de APIs -->
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.0.0/swagger-ui.css">
+    <script src="https://unpkg.com/swagger-ui-dist@5.0.0/swagger-ui-bundle.js"></script>
+    
+    <!-- Biblioteca Highlight.js para syntax highlighting (LOCAL) -->
+    <link rel="stylesheet" href="src/libs/atom-one-dark.min.css" id="highlight-theme">
+    <script src="src/libs/highlight.min.js"></script>
+    <!-- Plugin de números de linha -->
+    <script src="src/libs/highlightjs-line-numbers.min.js"></script>
+    <script>
+        // Verificar imediatamente se hljs foi carregado
+        console.log('🔍 Verificando Highlight.js...', typeof hljs);
+        if (typeof hljs !== 'undefined') {
+            console.log('✅ Highlight.js carregado!', hljs.highlight);
+            console.log('📚 Linguagens disponíveis:', hljs.listLanguages().length);
+            
+            // Verificar plugin de números de linha
+            if (typeof hljs.lineNumbersBlock !== 'undefined') {
+                console.log('✅ Plugin de números de linha carregado!');
+            } else {
+                console.warn('⚠️ Plugin de números de linha não encontrado');
+            }
+        } else {
+            console.error('❌ Highlight.js NÃO foi carregado!');
+        }
+    </script>
+    
+    <!-- Biblioteca html2pdf.js para exportação de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Ícones Font Awesome para uma melhor UX -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="src/css/styles.css?v=2.7.1">
+    <link rel="stylesheet" href="src/css/header-adjustments.css">
+    <link rel="stylesheet" href="src/css/search-styles.css">
+
+</head>
+<body>
+    <!-- Header da aplicação -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-left">
+                <button id="menu-toggle" class="menu-toggle" aria-label="Alternar menu de navegação">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="app-title">
+                    <i class="fab fa-markdown"></i>
+                    Markdown Viewer
+                </h1>
+            </div>
+            <div class="header-actions">
+                <button id="change-folder" class="theme-toggle" aria-label="Trocar pasta" title="Trocar pasta">
+                    <i class="fas fa-folder-open"></i>
+                </button>
+                <button id="export-pdf" class="theme-toggle" aria-label="Exportar documento para PDF" title="Exportar para PDF">
+                    <i class="fas fa-file-pdf"></i>
+                </button>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema escuro/claro">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <main class="app-container">
+        <!-- Sidebar de navegação -->
+        <aside id="sidebar" class="sidebar" role="navigation" aria-label="Navegação de arquivos">
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-folder-open"></i>
+                    Documentos
+                </h2>
+                <button id="refresh-files" class="refresh-button" aria-label="Atualizar lista de arquivos">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="file-search" class="file-search" placeholder="Buscar arquivos..." aria-label="Buscar arquivos">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <nav class="file-tree" id="file-tree" role="tree" aria-label="Árvore de arquivos">
+                <!-- A estrutura de arquivos será gerada dinamicamente pelo JavaScript -->
+                <div class="loading-message">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Carregando arquivos...
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Área de conteúdo principal -->
+        <section class="content-area">
+            <!-- Área de navegação de breadcrumb -->
+            <nav class="breadcrumb" aria-label="Caminho atual">
+                <ol id="breadcrumb-list" class="breadcrumb-list">
+                    <!-- Breadcrumbs serão gerados dinamicamente -->
+                </ol>
+            </nav>
+
+            <!-- Área onde o conteúdo Markdown será exibido -->
+            <article id="content-display" class="content-display" role="main">
+                <div class="welcome-screen">
+                    <div class="welcome-content">
+                        <i class="fab fa-markdown welcome-icon"></i>
+                        <h2>Bem-vindo ao Markdown Viewer</h2>
+                        <p>Selecione um arquivo Markdown no menu lateral para começar a visualizar seu conteúdo.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <!-- Overlay para mobile quando o menu está aberto -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Scripts JavaScript - v2.7.2 para forçar cache refresh -->
+    <script src="src/js/dynamicFileLoader.js?v=2.7.2" onload="console.log('✅ dynamicFileLoader.js carregado')" onerror="console.error('❌ Erro ao carregar dynamicFileLoader.js')"></script>
+    <script src="src/js/contentSearcher.js?v=2.7.2"></script>
+<script src="src/js/stopWordsFilter.js?v=2.7.2"></script>
+<script src="src/js/fileManager.js?v=2.7.2"></script>
+    <script src="src/js/markdownProcessor.js?v=2.7.2"></script>
+    <script src="src/js/uiManager.js?v=2.7.2"></script>
+    <script src="src/js/reloadFileFeature.js?v=2.7.2"></script>
+    <script src="src/js/contentHighlighter.js?v=2.7.2"></script>
+    <script src="src/js/app.js?v=2.7.2"></script>    <!-- Script de inicialização -->
+    <script>
+        // Inicializar aplicação quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, inicializando aplicação...');
+            
+            // Aguardar um pouco para garantir que todos os scripts terminaram de executar
+            setTimeout(() => {
+                // Verificar se temos a instância
+                if (window.MarkdownViewer && typeof window.MarkdownViewer.init === 'function') {
+                    console.log('✅ Instância encontrada, iniciando aplicação...');
+                    window.MarkdownViewer.init();
+                } 
+                // Se não temos instância mas temos a classe, criar instância
+                else if (window.MarkdownViewerClass || (typeof window.MarkdownViewer === 'function' && window.MarkdownViewer.prototype)) {
+                    console.log('🔧 Criando instância manualmente...');
+                    try {
+                        const ClassToUse = window.MarkdownViewerClass || window.MarkdownViewer;
+                        const instance = new ClassToUse();
+                        window.MarkdownViewer = instance;
+                        console.log('✅ Instância criada, iniciando aplicação...');
+                        instance.init();
+                    } catch (error) {
+                        console.error('❌ Erro ao criar instância:', error);
+                    }
+                } 
+                else {
+                    console.error('❌ MarkdownViewer não encontrado:', {
+                        MarkdownViewer: typeof window.MarkdownViewer,
+                        MarkdownViewerClass: typeof window.MarkdownViewerClass
+                    });
+                }
+            }, 150); // Aguarda 150ms para garantir que o app.js terminou
+        });
+    </script>
+</body>
+</html>
